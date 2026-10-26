@@ -1,0 +1,56 @@
+
+name: Build and package mod
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Compile and package
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install 7-Zip
+        shell: pwsh
+        run: |
+          choco install 7zip.install --yes --no-progress
+          $sevenZipPath = Join-Path $env:ProgramFiles '7-Zip'
+          if (-not (Test-Path (Join-Path $sevenZipPath '7z.exe'))) {
+            throw "7-Zip was not installed in the expected location."
+          }
+          $sevenZipPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Build package
+        shell: pwsh
+        run: dotnet build .\DrakiaXYZ-LiveFleaPrices.csproj --configuration Package
+
+      - name: Verify package
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem .\Package -Filter 'DrakiaXYZ-LiveFleaPrices-*.7z' -File | Select-Object -First 1
+          if (-not $package) {
+            throw "No .7z package was generated in the Package folder."
+          }
+          Write-Host "Package generated: $($package.FullName)"
+
+      - name: Upload package
+        uses: actions/upload-artifact@v7
+        with:
+          name: SPT-LiveFleaPrices-WTT
+          path: Package/DrakiaXYZ-LiveFleaPrices-*.7z
+          if-no-files-found: error
+          retention-days: 30
