@@ -103,7 +103,7 @@ public class LiveFleaPricesMod(
         if (fetchPrices || !fileUtil.FileExists(pricesPath))
         {
             logger.Info($"[LiveFleaPrices] Fetching Flea Prices for gamemode {gameMode}...");
-            var response = await GetWithRetries($"https://raw.githubusercontent.com/DrakiaXYZ/SPT-LiveFleaPriceDB/main/prices-{gameMode}.json", 5, cancellationToken);
+            var response = await GetWithRetries($"https://raw.githubusercontent.com/Luckzifer/SPT_LiveFleaPriceDB_WTT/main/prices-{gameMode}.json", 5, cancellationToken);
             if (response != null)
             {
                 newPrices = jsonUtil.Deserialize<Dictionary<string, int>>(response);
